@@ -5,6 +5,7 @@ input_dir <- args[1]
 output_dir <- args[2]
 
 source("https://raw.githubusercontent.com/BHKLAB-Pachyderm/ICB_Common/main/code/Get_Response.R")
+source("https://raw.githubusercontent.com/BHKLAB-Pachyderm/ICB_Common/main/code/format_clin_data.R")
 
 #############################################################################
 #############################################################################
@@ -53,14 +54,16 @@ clin = read.table( file.path(input_dir, "CLIN.txt") , sep="\t" , header=TRUE , s
 clin[ , 1 ] = paste( "P" , clin[ , 1 ] , sep = "" )
 rownames(clin) = clin[ , 1 ] 
 
-clin = as.data.frame( cbind( clin[ , 1:2 ] , "PD-1/PD-L1" , "Kidney" , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA ) )
+clin_original <- clin
+selected_cols <- c('Study.ID', 'ICI.best.response')
+clin = as.data.frame( cbind( clin[ , selected_cols ] , "PD-1/PD-L1" , "Kidney" , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA , NA ) )
 colnames(clin) = c( "patient" , "recist" , "drug_type" , "primary" , "recist" , "age" , "histo" , "response" , "pfs" ,"os" , "t.pfs" , "t.os" , "stage" , "sex" , "response.other.info" , "dna" , "rna" )
-
 
 clin$response = Get_Response( data=clin )
 clin$rna = "tpm"
 clin = clin[ , c("patient" , "sex" , "age" , "primary" , "histo" , "stage" , "response.other.info" , "recist" , "response" , "drug_type" , "dna" , "rna" , "t.pfs" , "pfs" , "t.os" , "os" ) ]
 
+clin <- format_clin_data(clin_original, 'Study.ID', selected_cols, clin)
 
 #############################################################################
 #############################################################################
