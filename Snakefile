@@ -10,13 +10,13 @@ filename = config["filename"]
 data_source  = "https://raw.githubusercontent.com/BHKLAB-Pachyderm/ICB_Shiuan-data/main/"
 
 rule get_MultiAssayExp:
-    output:
-        S3.remote(prefix + filename)
     input:
         S3.remote(prefix + "processed/EXPR.csv"),
         S3.remote(prefix + "processed/cased_sequenced.csv"),
         S3.remote(prefix + "processed/CLIN.csv"),
         S3.remote(prefix + "annotation/Gencode.v40.annotation.RData")
+    output:
+        S3.remote(prefix + filename)
     resources:
         mem_mb=4000
     shell:
@@ -41,13 +41,13 @@ rule download_annotation:
         """
 
 rule format_data:
+    input:
+        S3.remote(prefix + "download/CLIN.txt"),
+        S3.remote(prefix + "download/EXPR.txt")
     output:
         S3.remote(prefix + "processed/EXPR.csv"),
         S3.remote(prefix + "processed/cased_sequenced.csv"),
         S3.remote(prefix + "processed/CLIN.csv")
-    input:
-        S3.remote(prefix + "download/CLIN.txt"),
-        S3.remote(prefix + "download/EXPR.txt")
     resources:
         mem_mb=2000
     shell:
@@ -57,14 +57,23 @@ rule format_data:
         {prefix}processed \
         """
 
-rule download_data:
+rule format_downloaded_data:
+    input:
+        S3.remote(prefix + "download/cancers-13-01475-s001.zip")
     output:
         S3.remote(prefix + "download/CLIN.txt"),
         S3.remote(prefix + "download/EXPR.txt")
+    shell:
+        """
+        Rscript scripts/format_downloaded_data.R {prefix}download       
+        """
+
+rule download_data:
+    output:
+        S3.remote(prefix + "download/cancers-13-01475-s001.zip")
     resources:
         mem_mb=2000
     shell:
         """
-        wget {data_source}CLIN.txt -O {prefix}download/CLIN.txt
-        wget {data_source}EXPR.txt -O {prefix}download/EXPR.txt
+        wget {data_source}cancers-13-01475-s001.zip -O {prefix}download/cancers-13-01475-s001.zip
         """ 
