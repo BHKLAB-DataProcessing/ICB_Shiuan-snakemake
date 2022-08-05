@@ -16,7 +16,7 @@ colnames(expr) = sapply( colnames( expr ) , function( x ){ paste( "P" , unlist( 
 expr = expr[ , -1 ]
 
 cid = colnames( expr )
-expr = log2( t( apply( expr , 1 , as.numeric ) ) + 1 )
+expr = log2( t( apply( expr , 1 , as.numeric ) ) + 0.001 )
 colnames(expr) = cid
 
 #############################################################################
