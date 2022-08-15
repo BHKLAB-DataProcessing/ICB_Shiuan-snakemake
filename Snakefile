@@ -34,16 +34,22 @@ rule get_MultiAssayExp:
 
 rule download_annotation:
     output:
-        S3.remote(prefix + "annotation/Gencode.v40.annotation.RData")
+        S3.remote(prefix + "annotation/Gencode.v40.annotation.RData"),
+        S3.remote(prefix + "annotation/curation_drug.csv"),
+        S3.remote(prefix + "annotation/curation_tissue.csv")
     shell:
         """
-        wget https://github.com/BHKLAB-Pachyderm/Annotations/blob/master/Gencode.v40.annotation.RData?raw=true -O {prefix}annotation/Gencode.v40.annotation.RData 
+        wget https://github.com/BHKLAB-Pachyderm/Annotations/blob/master/Gencode.v40.annotation.RData?raw=true -O {prefix}annotation/Gencode.v40.annotation.RData
+        wget https://github.com/BHKLAB-Pachyderm/ICB_Common/raw/main/data/curation_drug.csv -O {prefix}annotation/curation_drug.csv
+        wget https://github.com/BHKLAB-Pachyderm/ICB_Common/raw/main/data/curation_tissue.csv -O {prefix}annotation/curation_tissue.csv 
         """
 
 rule format_data:
     input:
         S3.remote(prefix + "download/CLIN.txt"),
-        S3.remote(prefix + "download/EXPR.txt")
+        S3.remote(prefix + "download/EXPR.txt"),
+        S3.remote(prefix + "annotation/curation_drug.csv"),
+        S3.remote(prefix + "annotation/curation_tissue.csv")
     output:
         S3.remote(prefix + "processed/EXPR.csv"),
         S3.remote(prefix + "processed/cased_sequenced.csv"),
@@ -55,6 +61,7 @@ rule format_data:
         Rscript scripts/Format_Data.R \
         {prefix}download \
         {prefix}processed \
+        {prefix}annotation
         """
 
 rule format_downloaded_data:
